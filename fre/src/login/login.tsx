@@ -16,21 +16,20 @@ export default function Login() {
     }
 
     function login() {
-        post("https://api.clicli.cc/user/login", { name, pwd }).then((res: any) => {
+        post("https://www.clicli.cc/user/login", { name, pwd }).then((res: any) => {
             if (res.code === 200) {
                 window.localStorage.setItem('token', res.token)
                 window.localStorage.setItem('user', JSON.stringify(res.user))
-                push('/')
+                window.location.href = '/'
             } else {
                 alert(res.msg)
             }
-
         })
     }
     return <div class="login">
         <li><h1>CliCli.登录</h1></li>
         <li><input type="text" placeholder="昵称" onInput={(e) => changeName(e.target.value)} /></li>
-        <li><input type="text" placeholder="密码" onInput={(e) => changePwd(e.target.value)} /></li>
+        <li><input type="password" placeholder="密码" onInput={(e) => changePwd(e.target.value)} /></li>
         <li><button onClick={login}>登录</button></li>
         <li><A href="/register">注册</A></li>
     </div>

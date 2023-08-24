@@ -4,20 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cliclitv/go-clicli/db"
-	"github.com/cliclitv/go-clicli/def"
 	"github.com/julienschmidt/httprouter"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 	"strconv"
 )
 
 func AddPost(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	req, _ := ioutil.ReadAll(r.Body)
-	pbody := &def.Post{}
+
+	req, _ := io.ReadAll(r.Body)
+	pbody := &db.Post{}
 
 	if err := json.Unmarshal(req, pbody); err != nil {
 		sendMsg(w, 400, fmt.Sprintf("%s", err))
+		return
+	}
+
+	token := r.Header.Get("token")
+	err := Auth(pbody.Uid, token, 2) // uid 为原作者 uid
+
+	if err!= nil {
+		sendMsg(w, 500, fmt.Sprintf("%s", err))
 		return
 	}
 
@@ -34,10 +41,18 @@ func AddPost(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 func UpdatePost(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	pid := p.ByName("id")
 	pint, _ := strconv.Atoi(pid)
-	req, _ := ioutil.ReadAll(r.Body)
-	pbody := &def.Post{}
+	req, _ := io.ReadAll(r.Body)
+	pbody := &db.Post{}
 	if err := json.Unmarshal(req, pbody); err != nil {
 		sendMsg(w, 400, fmt.Sprintf("%s", err))
+		return
+	}
+
+	token := r.Header.Get("token")
+	err := Auth(pbody.Uid, token,2) // uid 为原作者 uid
+
+	if err!= nil {
+		sendMsg(w, 500, fmt.Sprintf("%s", err))
 		return
 	}
 
@@ -65,7 +80,6 @@ func GetPost(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	pid, _ := strconv.Atoi(p.ByName("id"))
 	resp, err := db.GetPost(pid)
 	if err != nil {
-		log.Printf("%s", err)
 		sendMsg(w, 500, fmt.Sprintf("%s", err))
 		return
 	} else {
@@ -80,16 +94,13 @@ func GetPosts(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	uid, _ := strconv.Atoi(r.URL.Query().Get("uid"))
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("pageSize"))
-	if pageSize > 300 {
-		sendMsg(w, 401, "pageSize太大了")
-		return
-	}
+
 	resp, err := db.GetPosts(page, pageSize, status, sort, tag, uid)
 	if err != nil {
 		sendMsg(w, 500, fmt.Sprintf("%s", err))
 		return
 	} else {
-		res := &def.Posts{Posts: resp}
+		res := &db.Posts{Posts: resp}
 		sendPostsResponse(w, res, 200)
 	}
 }
@@ -100,23 +111,37 @@ func SearchPosts(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	resp, err := db.SearchPosts(key)
 	if err != nil {
 		sendMsg(w, 500, fmt.Sprintf("%s", err))
-		log.Printf("%s", err)
 		return
 	} else {
-		res := &def.Posts{Posts: resp}
+		res := &db.Posts{Posts: resp}
+		sendPostsResponse(w, res, 200)
+	}
+
+}
+
+func FollowPosts(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fid, _ := strconv.Atoi(r.URL.Query().Get("fid"))
+
+	resp, err := db.FollowPosts(fid)
+	if err != nil {
+		sendMsg(w, 500, fmt.Sprintf("%s", err))
+		return
+	} else {
+		res := &db.Posts{Posts: resp}
 		sendPostsResponse(w, res, 200)
 	}
 
 }
 
 func GetRank(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	resp, err := db.GetRank()
+	day := r.URL.Query().Get("day")
+
+	resp, err := db.GetRank(day)
 	if err != nil {
 		sendMsg(w, 500, fmt.Sprintf("%s", err))
-		log.Printf("%s", err)
 		return
 	} else {
-		res := &def.Posts{Posts: resp}
+		res := &db.Posts{Posts: resp}
 		sendPostsResponse(w, res, 200)
 	}
 

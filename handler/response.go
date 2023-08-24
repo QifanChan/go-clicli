@@ -2,69 +2,110 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/cliclitv/go-clicli/def"
 	"io"
 	"net/http"
+	"github.com/cliclitv/go-clicli/db"
 )
 
-func sendUserResponse(w http.ResponseWriter, uRes *def.User, sc int, msg string) {
+func sendUserResponse(w http.ResponseWriter, uRes *db.User, sc int, msg string) {
 	w.WriteHeader(sc)
 
 	resStr, _ := json.Marshal(struct {
 		Code   int      `json:"code"`
 		Msg    string   `json:"msg,omitempty"`
-		Result def.User `json:"result"`
+		Result db.User `json:"result"`
 	}{sc, msg, *uRes})
 
 	io.WriteString(w, string(resStr))
 
 }
 
-func sendPostResponse(w http.ResponseWriter, pRes *def.Post, sc int) {
+func sendPostResponse(w http.ResponseWriter, pRes *db.Post, sc int) {
 	w.WriteHeader(sc)
 	resStr, _ := json.Marshal(struct {
 		Code   int       `json:"code"`
-		Result *def.Post `json:"result"`
+		Result *db.Post `json:"result"`
 	}{sc, pRes})
 
 	io.WriteString(w, string(resStr))
 }
 
-func sendPostsResponse(w http.ResponseWriter, pRes *def.Posts, sc int) {
+func sendNoteResponse(w http.ResponseWriter, pRes *db.Note, sc int) {
+	w.WriteHeader(sc)
+	resStr, _ := json.Marshal(struct {
+		Code   int       `json:"code"`
+		Result *db.Note `json:"result"`
+	}{sc, pRes})
+
+	io.WriteString(w, string(resStr))
+}
+
+func sendNotesResponse(w http.ResponseWriter, pRes *db.Notes, sc int) {
 	w.WriteHeader(sc)
 	resStr, _ := json.Marshal(struct {
 		Code int `json:"code"`
-		*def.Posts
+		*db.Notes
 	}{sc, pRes})
 
 	io.WriteString(w, string(resStr))
 }
 
-func sendUsersResponse(w http.ResponseWriter, pRes *def.Users, sc int) {
+
+func sendPostsResponse(w http.ResponseWriter, pRes *db.Posts, sc int) {
 	w.WriteHeader(sc)
 	resStr, _ := json.Marshal(struct {
 		Code int `json:"code"`
-		*def.Users
+		*db.Posts
 	}{sc, pRes})
 
 	io.WriteString(w, string(resStr))
 }
 
-func sendPlayResponse(w http.ResponseWriter, cRes def.Play, sc int) {
+func sendUsersResponse(w http.ResponseWriter, pRes *db.Users, sc int) {
+	w.WriteHeader(sc)
+	resStr, _ := json.Marshal(struct {
+		Code int `json:"code"`
+		*db.Users
+	}{sc, pRes})
+
+	io.WriteString(w, string(resStr))
+}
+
+func sendPlayResponse(w http.ResponseWriter, cRes db.Play, sc int) {
 	w.WriteHeader(sc)
 	resStr, _ := json.Marshal(struct {
 		Code   int      `json:"code"`
-		Result def.Play `json:"result"`
+		Result db.Play `json:"result"`
 	}{sc, cRes})
 
 	io.WriteString(w, string(resStr))
 }
 
-func sendPvResponse(w http.ResponseWriter, cRes *def.Pv, sc int) {
+func sendFansResponse(w http.ResponseWriter, cRes *db.FanCount, sc int) {
+	w.WriteHeader(sc)
+	resStr, _ := json.Marshal(struct {
+		Code   int      `json:"code"`
+		Result *db.FanCount `json:"result"`
+	}{sc, cRes})
+
+	io.WriteString(w, string(resStr))
+}
+
+func sendPvResponse(w http.ResponseWriter, cRes *db.Pv, sc int) {
 	w.WriteHeader(sc)
 	resStr, _ := json.Marshal(struct {
 		Code   int     `json:"code"`
-		Result *def.Pv `json:"result"`
+		Result *db.Pv `json:"result"`
+	}{sc, cRes})
+
+	io.WriteString(w, string(resStr))
+}
+
+func sendPeaResponse(w http.ResponseWriter, cRes *db.Pea, sc int) {
+	w.WriteHeader(sc)
+	resStr, _ := json.Marshal(struct {
+		Code   int     `json:"code"`
+		Result *db.Pea `json:"result"`
 	}{sc, cRes})
 
 	io.WriteString(w, string(resStr))
@@ -76,6 +117,15 @@ func sendMsg(w http.ResponseWriter, code int, msg string) {
 		Code int    `json:"code"`
 		Msg  string `json:"msg"`
 	}{Code: code, Msg: msg})
+
+	io.WriteString(w, string(resStr))
+}
+func sendCommentsResponse(w http.ResponseWriter, Res *db.Comments, sc int) {
+	w.WriteHeader(sc)
+	resStr, _ := json.Marshal(struct {
+		Code int `json:"code"`
+		*db.Comments
+	}{sc, Res})
 
 	io.WriteString(w, string(resStr))
 }

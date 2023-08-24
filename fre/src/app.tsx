@@ -1,8 +1,9 @@
-import { render, Fragment, h, useEffect } from "fre"
-import { useRoutes, push, A } from './use-route'
+import { render, Fragment, h, } from "fre"
+import { useRoutes } from './use-route'
 import './app.css'
+import './m.css'
 import Header from "./header/header"
-
+import Footer from './header/footer'
 
 const routes = {
     '/': import('./home/home'),
@@ -11,15 +12,21 @@ const routes = {
     '/upload/:id': import('./upload/upload'),
     '/play/:gv': import('./play/play'),
     '/search/:k': import('./search/search'),
-    '/user/:id': import('./login/register')
+    '/user/:id': import('./login/register'),
+    '/recharge': import('./recharge/recharge'),
+    '/my/:id': import('./admin/admin'),
 }
 
 const App = () => {
     let route = useRoutes(routes)
-    return <>
-        {window.location.pathname !== '/login' && window.location.pathname !== '/register' && <Header />}
-        {route}
-    </>
+    console.log(route)
+    return <div>
+        <Header />
+        <div>{route}</div>
+        <Footer />
+    </div>
 }
 
 render(<App />, document.getElementById("app"))
+
+

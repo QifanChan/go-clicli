@@ -4,10 +4,11 @@ import { getUser } from './util/api'
 let pathCache = {}
 let routesCache = null
 let routeStack = null
+const cache = new Map()
 
 export function useRoutes(routes) {
 
-  const setter = useState(0)[1]
+  const [path, setter] = useState('')
 
   let stack = {
     routes: Object.entries(routesCache || routes),
@@ -22,7 +23,11 @@ export function useRoutes(routes) {
 
   perfrom(routeStack)
 
-  return typeof stack.component.then === 'function' ? <div></div> : h(stack.component, stack.props, null)
+
+
+    let vdom = h(stack.component, stack.props)
+
+  return typeof stack.component.then === 'function' ? null : vdom
 }
 
 
@@ -51,6 +56,8 @@ function perfrom(stack) {
     break
   }
 
+  console.log(path)
+
 
   Object.assign(stack, {
     path,
@@ -58,23 +65,15 @@ function perfrom(stack) {
     props
   })
 
-
   if (typeof component.then === 'function') {
-    if (getUser() || path === '/login'|| path === '/register') {
-      component.then(res => {
-        routesCache[path] = res.default
-        setter(Symbol())
-      })
-    } else {
-      if (currentPath !== '/register') {
-        setTimeout(() => {
-          push('/login')
-        })
-      }
+    component.then(res => {
+      routesCache[path] = res.default
+      setter(path)
+    })
 
-    }
   } else {
-    setter(Symbol())
+    routesCache[path] = component
+    setter(path)
   }
 
 }
@@ -102,7 +101,9 @@ export function push(url) {
 }
 
 
-window.addEventListener('popstate', () => perfrom(routeStack))
+window.addEventListener('popstate', (e) => {
+  perfrom(routeStack)
+})
 
 function isModifiedEvent(event) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);

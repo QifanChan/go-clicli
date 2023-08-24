@@ -1,93 +1,73 @@
 import { h, useState, useEffect } from 'fre'
 import { A, push } from '../use-route'
 import { post } from '../util/post'
-import '../util/metamask.js'
 import './login.css'
-import { getUserB, updateUser } from '../util/api'
+import { getUser, getUserB, updateUser } from '../util/api'
+
+export function logout() {
+    localStorage.clear()
+    window.location.href = '/login'
+}
 
 export default function Register({ id }) {
 
-    const [name, setName] = useState(null)
-    const [pwd, setPwd] = useState(null)
-    const [qq, setQQ] = useState(null)
-    const [loading, setLoading] = useState(false)
-    const [level, setLevel] = useState(0)
-    const [uid, setUid] = useState(0)
+    const [user, setUser] = useState({} as any)
 
-    useEffect(async () => {
-        console.log('编辑用户')
-        const user = await getUserB({ qq: id })
-        setName(user.result.name)
-        setQQ(user.result.qq)
-        setUid(user.result.id)
-        setLevel(user.result.level)
+    useEffect(() => {
+        if (id) {
+            getUserB({ qq: id } as any).then((user: any) => {
+                setUser(user.result)
+            })
+        }
+
     }, [])
 
-
-    function changeName(v) {
-        setName(v)
+    function change(key, val) {
+        setUser({
+            ...user,
+            [key as any]: val,
+        } as any)
     }
 
-    function changePwd(v) {
-        setPwd(v)
-    }
-
-    function changeQQ(v) {
-        setQQ(v)
-    }
-
-    function changeLevel(v) {
-        setLevel(v)
-    }
 
     async function register() {
         if (id != null) {
             console.log('修改用户')
-            updateUser({ id: uid, name, qq, pwd, desc: "", level: level }).then(res => {
-                if (res.code === 200) {
+            updateUser(user as any).then(res => {
+                if ((res as any).code === 200) {
                     alert("修改成功啦~")
                 }
             })
             return
         }
-        if (!name || !qq || !pwd) {
+        if (!user.name || !user.qq || !user.pwd) {
             alert('全都得填::>_<::')
+            return
         }
-        setLoading(true)
-        const getFn = (data) => {
-            console.log(data)
-        }
-        const setAuthFn = (data) => {
-            console.log(data)
-        }
-        const setUserFn = (data) => {
-            console.log(data)
-        }
-        const hedgehog = new (window as any).Hedgehog(getFn, setAuthFn, setUserFn)
-        let wallet
-        if (hedgehog.isLoggedIn()) {
-            wallet = hedgehog.getWallet()
-        } else {
-            wallet = await hedgehog.signUp(name, pwd)
-            const hash = hedgehog.getWallet().getAddressString()
-            console.log(hash)
-            const res = await post("https://api.clicli.cc/user/register", { name, pwd, qq, hash })
-            setLoading(false)
+        const res = await post("https://www.clicli.cc/user/register", { name: user.name, pwd: user.pwd, qq: user.qq, time: 0, sign: "这个人很懒，什么都没有留下~" }) as any
+        if (res.code === 200) {
             alert("注册成功啦~")
+        } else {
+            alert(res.msg)
         }
     }
+
+    console.log(888)
     return <div class="login">
-        <li><h1>CliCli.{id ? '编辑用户' : '注册'}</h1></li>
-        <li><input type="text" placeholder="QQ" onInput={(e) => changeQQ(e.target.value)} value={qq} /></li>
-        <li><input type="text" placeholder="昵称" onInput={(e) => changeName(e.target.value)} value={name} /></li>
-        <li><input type="text" placeholder={id ? "留空则不改" : "密码（不可修改）"} onInput={(e) => changePwd(e.target.value)} /></li>
-        {id && <select value={level} onInput={e => changeLevel(e.target.value)}>
+        <li><h1>CliCli.{id ? '个人中心' : '注册'}</h1></li>
+        <li><input type="text" placeholder="QQ" onInput={(e) => change('qq', e.target.value)} value={user.qq} /></li>
+        <li><input type="text" placeholder="昵称" onInput={(e) => change('name', e.target.value)} value={user.name} /></li>
+        <li><input type="text" placeholder={id ? "留空则不改" : "密码"} onInput={(e) => change('pwd', e.target.value)} /></li>
+        <li><input type="text" placeholder="签名(可不填)" onInput={(e) => change('sign', e.target.value)} value={user.sign} /></li>
+
+        {id && getUser().level >= 3 && <select value={user.level} onInput={e => change('level', e.target.value)}>
             <option value="1">游客</option>
             <option value="2">作者</option>
             <option value="3">审核</option>
             <option value="4">管理</option>
         </select>}
-        <li><button onClick={register} disabled={loading}>{loading ? '少年注册中...' : '注册'}</button></li>
+        <li><button onClick={register}>{id ? '修改' : '注册'}</button></li>
+        {id && <li><button onClick={logout} style={{ background: '#ff2b79' }}>退出登陆</button></li>}
         {!id && <li><A href="/login">登录</A></li>}
     </div>
 }

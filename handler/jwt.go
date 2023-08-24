@@ -2,28 +2,31 @@ package handler
 
 import (
 	"errors"
-	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/julienschmidt/httprouter"
-	"net/http"
+	"fmt"
 	"time"
+
+	"github.com/cliclitv/go-clicli/db"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 var Key = []byte("clicli")
 
 type MyClaims struct {
+	Id    int    `json:"id"`
 	Name  string `json:"name"`
 	Pwd   string `json:"pwd"`
 	Level int    `json:"level"`
 	jwt.StandardClaims
 }
 
-func GenToken(name string, pwd string, level int) (string, error) {
+func GenToken(id int, name string, pwd string, level int) (string, error) {
 	c := MyClaims{
+		id,
 		name,
 		pwd,
 		level,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 5).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 240).Unix(),
 			Issuer:    "yisar",
 		},
 	}
@@ -47,25 +50,42 @@ func ParseToken(str string) (*MyClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
-func Auth(h httprouter.Handle, level int) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		// 首先判断 token
-
-		token := r.Header.Get("token")
-
-		mc, err := ParseToken(token)
-
-		if err != nil {
-			sendMsg(w, 401, "token 失效")
-		}
-
-		// 然后校验权限
-
-		if mc.Level < level {
-			sendMsg(w, 401, "权限不足")
-		}
-
-		h(w, r, p)
-
+func Auth(uid int, token string, level int) error {
+	userClaims, err := ParseToken(token)
+	if err != nil {
+		return errors.New("token已过期，请重新登录")
 	}
+
+	// 查找当前用户
+	user, err := db.GetUser("", uid, "")
+
+	if userClaims.Level < level {
+		// 都要大于2
+		return errors.New("没有权限")
+	}
+
+	if user.Name == userClaims.Name {
+		// 本人编辑，ok
+		return nil
+	}
+
+	fmt.Println(userClaims.Level)
+
+	if err != nil {
+		return err
+	}
+
+	if level == 1 {
+		if userClaims.Level >= user.Level {
+			// 编辑者权限 > 作者权限
+			return nil
+		}
+	} else {
+		if userClaims.Level >= 3 {
+			// 编辑者权限 > 作者权限
+			return nil
+		}
+	}
+
+	return errors.New("权限不足")
 }

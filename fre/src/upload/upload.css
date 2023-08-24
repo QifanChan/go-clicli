@@ -42,7 +42,7 @@
     background: #f2f2f2;
 }
 
-.title input {
+.upload .title input {
     padding: 10px 20px;
     border-radius: 18px;
     margin: 20px 0;
@@ -52,14 +52,16 @@
     background: #f2f2f2;
 }
 
-.title {
+.upload .title {
     width: 100%;
     box-sizing: border-box;
     margin: 10px 0;
 }
 
-.tags {
+.p .tags {
     margin: 10px 0;
+    width: 360px;
+    display: inline-block;
 }
 
 .tags li {
@@ -93,6 +95,7 @@
     border-radius: 18px;
     border: none;
     width: 100px;
+    cursor: pointer;
 }
 
 .options select {
@@ -109,4 +112,26 @@
     background: #f2f2f2;
     padding: 2px 5px;
     border-radius: 5px;
+}
+.upload-video{
+    padding: 10px;
+    background: #f2f2f2;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.icon-video{
+    font-size: 10px;
+    padding-right: 10px;
+}
+
+.video-pre{
+    padding: 10px;
+    color: var(--theme);
+}
+
+.video-vid{
+    padding: 5px 10px;
+    border: none;
 }
